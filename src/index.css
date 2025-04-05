@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+/* Prevent white flash during transitions and improve rendering */
+html, body {
+  background-color: black;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  background-color: black;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+nav-item{
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+}
+
+.hero-heading{
+  font-family: "Cormorant Garamond", serif;
+  font-weight: 600;
+}
+
+/* Add zoom transition effect with hardware acceleration */
+.zoom-fade-transition {
+  animation: zoomFade 1.2s ease-in-out;
+  transform: translateZ(0);
+  will-change: auto;
+  backface-visibility: hidden;
+}
+
+@keyframes zoomFade {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateZ(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+  }
+}
+
+/* Improve video rendering */
+video {
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000;
+}
+
+/* Improve image rendering */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  transform: translateZ(0);
+}
+
+/* Ensure frame animations are visible */
+img[style*="fixed"] {
+  z-index: 9999 !important;
+  pointer-events: none;
+  transform-origin: center center !important;
+  image-rendering: high-quality !important;
+  filter: none !important;
+  transition: none !important;
+}
+
+
