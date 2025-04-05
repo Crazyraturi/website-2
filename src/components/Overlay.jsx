@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import frameImage from "../assets/images/frame.png";
 import backgroundVideo from "../assets/videos/bg.mp4";
-import { gsap } from "gsap";
+import { gsap } from "gsap";              
 
 const Overlay = ({ onClick }) => {
   const navigate = useNavigate();
@@ -37,55 +37,24 @@ const Overlay = ({ onClick }) => {
     if (isAnimating) return;
     setIsAnimating(true);
 
-    // Create a fixed black background to prevent white flash
-    const blackOverlay = document.createElement('div');
-    blackOverlay.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: black;
-      z-index: 1;
-    `;
-    document.body.appendChild(blackOverlay);
-
-    // Clone the video and position it above the black overlay with high quality settings
+    // Create an invisible overlay to manage transition
+    document.body.style.backgroundColor = "black";
+    
+    // Start playing the video but keep the overlay visible
     if (videoRef.current) {
-      const videoClone = videoRef.current.cloneNode(true);
-      videoClone.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        z-index: 2;
-        will-change: auto;
-        transform: translateZ(0);
-        backface-visibility: hidden;
-        -webkit-font-smoothing: subpixel-antialiased;
-      `;
-      videoClone.play();
-      videoClone.playbackRate = 3;
-      document.body.appendChild(videoClone);
-      
-      // Original video can still play with better performance settings
+      videoRef.current.style.zIndex = "50";
+      videoRef.current.style.opacity = "1";
       videoRef.current.playbackRate = 3;
-      videoRef.current.style.willChange = 'auto';
-      videoRef.current.style.transform = 'translateZ(0)';
       videoRef.current.play();
     }
 
-    // Animate the heading to fade out and move up - clean animation
+    // Animate the heading to fade out and move up
     gsap.to(headingRef.current, {
       opacity: 0,
       y: -50,
       scale: 0.8,
       duration: 0.8,
-      ease: "power2.in",
-      force3D: true,
-      clearProps: "transform"
+      ease: "power2.in"
     });
 
     // Make sure the frame is above everything
@@ -118,32 +87,22 @@ const Overlay = ({ onClick }) => {
         opacity: 0,
         ease: "power2.inOut",
         force3D: true,
-        onStart: () => {
-          console.log("Frame animation started");
-        },
         onComplete: () => {
-          console.log("Frame animation completed");
-          // Remove the cloned frame
+          // Create a direct navigation method that doesn't cause flash
+          const homePage = "/home";
+          
+          // First load the next page
+          const link = document.createElement('a');
+          link.href = homePage;
+          document.body.appendChild(link);
+          
+          // Then remove the cloned frame to clean up
           if (document.body.contains(frameClone)) {
             document.body.removeChild(frameClone);
           }
           
-          // Navigate after the animation completes
-          setTimeout(() => {
-            if (onClick) onClick();
-            navigate("/home");
-            
-            // Clean up after navigation is triggered
-            setTimeout(() => {
-              if (document.body.contains(blackOverlay)) {
-                document.body.removeChild(blackOverlay);
-              }
-              const clonedVideo = document.querySelector('video[style*="fixed"]');
-              if (clonedVideo && document.body.contains(clonedVideo)) {
-                document.body.removeChild(clonedVideo);
-              }
-            }, 100);
-          }, 50);
+          // Navigate without refreshing
+          navigate(homePage);
         },
       });
     }
@@ -151,18 +110,13 @@ const Overlay = ({ onClick }) => {
 
   return (
     <div className="overlay flex flex-col items-center justify-center h-screen relative overflow-hidden">
-      {/* Video Background with improved rendering */}
+      {/* Video Background */}
       <video
         ref={videoRef}
         className="absolute top-0 left-0 w-full h-full object-cover"
         src={backgroundVideo}
         muted
         playsInline
-        style={{
-          willChange: 'auto',
-          transform: 'translateZ(0)',
-          backfaceVisibility: 'hidden'
-        }}
         onLoadedMetadata={() => {
           if (videoRef.current) {
             videoRef.current.currentTime = 0.3;
@@ -189,7 +143,7 @@ const Overlay = ({ onClick }) => {
         </h1>
       </div>
 
-      {/* Frame Container with improved rendering */}
+      {/* Frame Container */}
       <div className="frameImg relative flex items-center justify-center w-full px-4">
         <img
           ref={frameRef}
@@ -205,8 +159,7 @@ const Overlay = ({ onClick }) => {
             willChange: "transform",
             transformOrigin: "center center",
             transform: 'translateZ(0)',
-            backfaceVisibility: 'hidden',
-            imageRendering: 'high-quality'
+            backfaceVisibility: 'hidden'
           }}
           className="sm:w-[70%] md:w-[60%] lg:w-[50%] xl:w-[40%]"
         />
